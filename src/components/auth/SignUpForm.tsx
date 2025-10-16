@@ -7,6 +7,7 @@ import Link from "next/link";
 import React, { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export default function SignUpForm() {
   const [showPassword, setShowPassword] = useState(false);
@@ -15,15 +16,11 @@ export default function SignUpForm() {
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
   const router = useRouter();
   const supabase = createClient();
 
   const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError(null);
-    setSuccess(null);
 
     const { error } = await supabase.auth.signUp({
       email,
@@ -37,9 +34,9 @@ export default function SignUpForm() {
     });
 
     if (error) {
-      setError(error.message);
+      toast.error(error.message);
     } else {
-      setSuccess("Check your email for a confirmation link.");
+      toast.success("Check your email for a confirmation link.");
     }
   };
 
@@ -238,12 +235,12 @@ export default function SignUpForm() {
                     Sign Up
                   </button>
                 </div>
-                {error && (
+                {/* {error && (
                   <div className="text-red-500 text-sm mt-4">{error}</div>
                 )}
                 {success && (
                   <div className="text-green-500 text-sm mt-4">{success}</div>
-                )}
+                )} */}
               </div>
             </form>
 

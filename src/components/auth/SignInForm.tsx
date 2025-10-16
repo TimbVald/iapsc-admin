@@ -8,19 +8,18 @@ import Link from "next/link";
 import React, { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export default function SignInForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const supabase = createClient();
 
   const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError(null);
 
     const { error } = await supabase.auth.signInWithPassword({
       email,
@@ -28,8 +27,9 @@ export default function SignInForm() {
     });
 
     if (error) {
-      setError(error.message);
+      toast.error(error.message);
     } else {
+      toast.success("Signed in successfully!");
       router.push("/");
     }
   };
@@ -187,9 +187,6 @@ export default function SignInForm() {
                     Sign in
                   </Button>
                 </div>
-                {error && (
-                  <div className="text-red-500 text-sm mt-4">{error}</div>
-                )}
               </div>
             </form>
 

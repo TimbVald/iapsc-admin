@@ -8,6 +8,11 @@ const VectorMap = dynamic(
   { ssr: false }
 );
 
+const WorldMill = dynamic(
+  () => import("@react-jvectormap/world").then((mod) => mod.worldMill as any),
+  { ssr: false }
+);
+
 // Define the component props
 interface CountryMapProps {
   mapColor?: string;

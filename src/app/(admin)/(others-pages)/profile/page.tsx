@@ -1,10 +1,10 @@
 
 import UserInfoCard from "@/components/user-profile/UserInfoCard";
 import UserMetaCard from "@/components/user-profile/UserMetaCard";
-import { createClient } from "@/lib/supabase/server";
+import { createServerSupabase } from "@/lib/supabase/server";
 
 export default async function ProfilePage() {
-  const supabase = await createClient();
+  const supabase = await createServerSupabase();
   const { data } = await supabase.auth.getUser();
   const user = data.user;
 

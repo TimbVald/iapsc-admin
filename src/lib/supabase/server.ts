@@ -1,7 +1,7 @@
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
 
-export const createClient = async () => {
+export async function createServerSupabase() {
   const cookieStore = await cookies();
 
   return createServerClient(
@@ -17,11 +17,11 @@ export const createClient = async () => {
             cookiesToSet.forEach(({ name, value, options }) =>
               cookieStore.set(name, value, options)
             );
-          } catch (error) {
-            // Called from a Server Component; middleware will refresh tokens.
+          } catch {
+            // Si on est dans un composant Server, le middleware gérera la mise à jour
           }
         },
       },
     }
   );
-};
+}

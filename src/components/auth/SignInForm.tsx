@@ -9,6 +9,7 @@ import React, { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { createBrowserClient } from "@supabase/ssr";
 
 export default function SignInForm() {
   const [showPassword, setShowPassword] = useState(false);
@@ -21,16 +22,25 @@ export default function SignInForm() {
   const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      const response = await fetch('/api/auth/signin', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
-    if (error) {
-      toast.error(error.message);
-    } else {
+      if (!response.ok) {
+        const { error } = await response.json();
+        throw new Error(error);
+      }
+
       toast.success("Signed in successfully!");
       router.push("/");
+      router.refresh();
+    } catch (error: any) {
+      toast.error(error.message);
     }
   };
 

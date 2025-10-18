@@ -154,7 +154,7 @@ const UserMetaCard = () => {
               <Image
                 width={80}
                 height={80}
-                src={user.user_metadata.avatar_url || "/images/user/owner.jpg"}
+                src={user.user_metadata.avatar_url || "https://res.cloudinary.com/dyetkan86/image/upload/v1757619760/pexels-graeme-travers-637657729-18985246_gmhsca.jpg"}
                 alt="user"
               />
               <button

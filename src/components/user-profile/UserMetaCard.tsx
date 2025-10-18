@@ -29,6 +29,8 @@ const UserMetaCard = () => {
     null
   );
 
+  // Fetch the current authenticated user on mount and whenever supabase instance changes.
+  // Populates local state with the user's metadata (first_name, last_name, full_name).
   useEffect(() => {
     const fetchUser = async () => {
       const { data } = await supabase.auth.getUser();

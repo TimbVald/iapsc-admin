@@ -80,7 +80,7 @@ export default function UserInfoCard() {
                 Full Name
               </p>
               <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                {user?.user_metadata.full_name || "No name"}
+                {user?.user_metadata.first_name || "AU"} {user?.user_metadata.last_name || "IAPSC"}
               </p>
             </div>
 

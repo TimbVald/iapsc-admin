@@ -5,9 +5,11 @@ import { relations } from 'drizzle-orm';
 export const users = pgTable('users', {
   id: uuid('id').defaultRandom().primaryKey(),
   fullName: text('full_name'),
+  imageURL: text('image_url'),
   phone: text('phone'),
   email: text('email').unique().notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
 // Table des événements

@@ -1,13 +1,21 @@
 "use client";
-import React from "react";
+import React, { useCallback } from "react";
 import ComponentCard from "../../common/ComponentCard";
 import { useDropzone } from "react-dropzone";
 
-const DropzoneComponent: React.FC = () => {
-  const onDrop = (acceptedFiles: File[]) => {
-    console.log("Files dropped:", acceptedFiles);
-    // Handle file uploads here
-  };
+interface DropzoneProps {
+  onFilesChange?: (files: File[]) => void;
+}
+
+const DropzoneComponent: React.FC<DropzoneProps> = ({ onFilesChange }) => {
+  const onDrop = useCallback(
+    (acceptedFiles: File[]) => {
+      if (onFilesChange) {
+        onFilesChange(acceptedFiles);
+      }
+    },
+    [onFilesChange]
+  );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,

@@ -14,12 +14,12 @@ export default async function ProfilePage() {
 
   return (
     <section className="p-4 lg:p-6">
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-        <div className="lg:col-span-5 2xl:col-span-4">
-          <UserMetaCard user={user} />
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="lg:col-span-1">
+          <UserMetaCard />
         </div>
-        <div className="lg:col-span-7 2xl:col-span-8">
-          <UserInfoCard user={user} />
+        <div className="lg:col-span-2">
+          <UserInfoCard />
         </div>
       </div>
     </section>

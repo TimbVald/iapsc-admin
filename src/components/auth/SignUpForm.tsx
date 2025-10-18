@@ -8,12 +8,15 @@ import React, { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import db from "@/lib/db";
+import { users } from "@/lib/db/schema";
 
 export default function SignUpForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter();
@@ -22,13 +25,15 @@ export default function SignUpForm() {
   const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: {
+          full_name: `${firstName} ${lastName}`,
           first_name: firstName,
           last_name: lastName,
+          phone: phone,
         },
       },
     });
@@ -169,6 +174,19 @@ export default function SignUpForm() {
                       onChange={(e) => setLastName(e.target.value)}
                     />
                   </div>
+                </div>
+                <div>
+                  <Label>
+                    Phone<span className="text-error-500">*</span>
+                  </Label>
+                  <Input
+                    type="text"
+                    id="phone"
+                    name="phone"
+                    placeholder="Enter your phone number"
+                    defaultValue={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                  />
                 </div>
                 {/* <!-- Email --> */}
                 <div>

@@ -6,14 +6,52 @@ import Button from "../ui/button/Button";
 import Input from "../form/input/InputField";
 import Label from "../form/Label";
 import { User } from "@supabase/supabase-js";
+import { createClient } from "@/lib/supabase/client";
+import { useEffect, useState } from "react";
 
-export default function UserInfoCard({ user }: { user: User }) {
+export default function UserInfoCard() {
   const { isOpen, openModal, closeModal } = useModal();
-  const handleSave = () => {
-    // Handle save logic here
-    console.log("Saving changes...");
-    closeModal();
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const supabase = createClient();
+      const { data, error } = await supabase.auth.getUser();
+      if (data) {
+        setUser(data.user);
+      }
+    };
+
+    fetchUser();
+  }, []);
+
+  const handleSave = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const supabase = createClient();
+
+    const { data, error } = await supabase.auth.updateUser({
+      email: formData.get("email") as string,
+      phone: formData.get("phone") as string,
+      data: {
+        first_name: formData.get("first_name") as string,
+        last_name: formData.get("last_name") as string,
+        full_name: `${formData.get("first_name")} ${formData.get("last_name")}`,
+      },
+    });
+
+    if (error) {
+      console.error("Error updating user:", error);
+    } else {
+      setUser(data.user);
+      closeModal();
+    }
   };
+
+  function setIsModalOpen(arg0: boolean): void {
+    throw new Error("Function not implemented.");
+  }
+
   return (
     <div className="p-5 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
@@ -28,7 +66,7 @@ export default function UserInfoCard({ user }: { user: User }) {
                 Full Name
               </p>
               <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                {user.user_metadata.full_name || "No name"}
+                {user?.user_metadata.full_name || "No name"}
               </p>
             </div>
 
@@ -37,7 +75,7 @@ export default function UserInfoCard({ user }: { user: User }) {
                 Email address
               </p>
               <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                {user.email}
+                {user?.email}
               </p>
             </div>
 
@@ -46,7 +84,7 @@ export default function UserInfoCard({ user }: { user: User }) {
                 Phone
               </p>
               <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                {user.phone || "No phone number"}
+                {user?.phone || "No phone number"}
               </p>
             </div>
           </div>
@@ -85,44 +123,8 @@ export default function UserInfoCard({ user }: { user: User }) {
               Update your details to keep your profile up-to-date.
             </p>
           </div>
-          <form className="flex flex-col">
+          <form className="flex flex-col" onSubmit={handleSave}>
             <div className="custom-scrollbar h-[450px] overflow-y-auto px-2 pb-3">
-              <div>
-                <h5 className="mb-5 text-lg font-medium text-gray-800 dark:text-white/90 lg:mb-6">
-                  Social Links
-                </h5>
-
-                <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
-                  <div>
-                    <Label>Facebook</Label>
-                    <Input
-                      type="text"
-                      defaultValue="https://www.facebook.com/PimjoHQ"
-                    />
-                  </div>
-
-                  <div>
-                    <Label>X.com</Label>
-                    <Input type="text" defaultValue="https://x.com/PimjoHQ" />
-                  </div>
-
-                  <div>
-                    <Label>Linkedin</Label>
-                    <Input
-                      type="text"
-                      defaultValue="https://www.linkedin.com/company/pimjo"
-                    />
-                  </div>
-
-                  <div>
-                    <Label>Instagram</Label>
-                    <Input
-                      type="text"
-                      defaultValue="https://instagram.com/PimjoHQ"
-                    />
-                  </div>
-                </div>
-              </div>
               <div className="mt-7">
                 <h5 className="mb-5 text-lg font-medium text-gray-800 dark:text-white/90 lg:mb-6">
                   Personal Information
@@ -131,39 +133,40 @@ export default function UserInfoCard({ user }: { user: User }) {
                 <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
                   <div className="col-span-2 lg:col-span-1">
                     <Label>First Name</Label>
-                    <Input type="text" defaultValue="Musharof" />
+                    <Input type="text" name="first_name" defaultValue={user?.user_metadata.first_name || ''} />
                   </div>
 
                   <div className="col-span-2 lg:col-span-1">
                     <Label>Last Name</Label>
-                    <Input type="text" defaultValue="Chowdhury" />
+                    <Input type="text" name="last_name" defaultValue={user?.user_metadata.last_name || ''} />
                   </div>
 
                   <div className="col-span-2 lg:col-span-1">
                     <Label>Email Address</Label>
-                    <Input type="text" defaultValue="randomuser@pimjo.com" />
+                    <Input type="text" name="email" defaultValue={user?.email || ''} />
                   </div>
 
                   <div className="col-span-2 lg:col-span-1">
                     <Label>Phone</Label>
-                    <Input type="text" defaultValue="+09 363 398 46" />
+                    <Input type="text" name="phone" defaultValue={user?.phone || ''} />
                   </div>
 
                   <div className="col-span-2">
-                    <Label>Bio</Label>
-                    <Input type="text" defaultValue="Team Manager" />
+                    
                   </div>
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-3 px-2 mt-6 lg:justify-end">
-              <Button size="sm" variant="outline" onClick={closeModal}>
-                Close
-              </Button>
-              <Button size="sm" onClick={handleSave}>
-                Save Changes
-              </Button>
-            </div>
+            <div className="flex justify-end gap-4">
+              <Button
+                onClick={() => closeModal()}
+                >
+                  Annuler
+                </Button>
+                <Button size="sm">
+                  Sauvegarder
+                </Button>
+              </div>
           </form>
         </div>
       </Modal>

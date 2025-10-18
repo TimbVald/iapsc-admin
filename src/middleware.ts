@@ -57,13 +57,15 @@ export async function middleware(request: NextRequest) {
   const { data } = await supabase.auth.getUser();
   const user = data.user;
 
-  if (!user && request.nextUrl.pathname !== "/signin") {
+  const publicUrls = ["/signin", "/signup", "/reset-password"];
+
+  if (!user && !publicUrls.includes(request.nextUrl.pathname)) {
     const url = request.nextUrl.clone();
     url.pathname = "/signin";
     return NextResponse.redirect(url);
   }
 
-  if (user && request.nextUrl.pathname === "/signin") {
+  if (user && publicUrls.includes(request.nextUrl.pathname)) {
     const url = request.nextUrl.clone();
     url.pathname = "/";
     return NextResponse.redirect(url);

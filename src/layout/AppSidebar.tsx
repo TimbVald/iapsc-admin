@@ -16,6 +16,8 @@ import {
   PlugInIcon,
   TableIcon,
   UserCircleIcon,
+  GroupIcon,
+  DocsIcon,
 } from "../icons/index";
 import SidebarWidget from "./SidebarWidget";
 
@@ -42,23 +44,52 @@ const navItems: NavItem[] = [
     name: "User Profile",
     path: "/profile",
   },
+];
 
+const managementItems: NavItem[] = [
   {
-    name: "Forms",
-    icon: <ListIcon />,
-    subItems: [{ name: "Form Elements", path: "/form-elements", pro: false }],
+    name: "Events",
+    icon: <CalenderIcon />,
+    subItems: [
+      { name: "List", path: "/admin/events" },
+      { name: "Add", path: "/admin/events/new", new: true },
+    ],
   },
   {
-    name: "Tables",
-    icon: <TableIcon />,
-    subItems: [{ name: "Basic Tables", path: "/basic-tables", pro: false }],
-  },
-  {
-    name: "Pages",
+    name: "News",
     icon: <PageIcon />,
     subItems: [
-      { name: "Blank Page", path: "/blank", pro: false },
-      { name: "404 Error", path: "/error-404", pro: false },
+      { name: "List", path: "/admin/news" },
+      { name: "Add", path: "/admin/news/new", new: true },
+    ],
+  },
+  {
+    name: "Resources",
+    icon: <DocsIcon />,
+    subItems: [
+      { name: "List", path: "/admin/resources" },
+      { name: "Add", path: "/admin/resources/new", new: true },
+    ],
+  },
+  {
+    name: "Users",
+    icon: <UserCircleIcon />,
+    subItems: [{ name: "List", path: "/admin/users" }],
+  },
+  {
+    name: "Partners",
+    icon: <GroupIcon />,
+    subItems: [
+      { name: "List", path: "/admin/partners" },
+      { name: "Add", path: "/admin/partners/new", new: true },
+    ],
+  },
+  {
+    name: "Galery",
+    icon: <GridIcon />,
+    subItems: [
+      { name: "List", path: "/admin/gallery" },
+      { name: "Add", path: "/admin/gallery/new", new: true },
     ],
   },
 ];
@@ -100,7 +131,7 @@ const AppSidebar: React.FC = () => {
 
   const renderMenuItems = (
     navItems: NavItem[],
-    menuType: "main" | "others"
+    menuType: "main" | "others" | "management"
   ) => (
     <ul className="flex flex-col gap-4">
       {navItems.map((nav, index) => (
@@ -225,7 +256,7 @@ const AppSidebar: React.FC = () => {
   );
 
   const [openSubmenu, setOpenSubmenu] = useState<{
-    type: "main" | "others";
+    type: "main" | "others" | "management";
     index: number;
   } | null>(null);
   const [subMenuHeight, setSubMenuHeight] = useState<Record<string, number>>(
@@ -239,14 +270,19 @@ const AppSidebar: React.FC = () => {
   useEffect(() => {
     // Check if the current path matches any submenu item
     let submenuMatched = false;
-    ["main", "others"].forEach((menuType) => {
-      const items = menuType === "main" ? navItems : othersItems;
+    ["main", "others", "management"].forEach((menuType) => {
+      const items =
+        menuType === "main"
+          ? navItems
+          : menuType === "others"
+          ? othersItems
+          : managementItems;
       items.forEach((nav, index) => {
         if (nav.subItems) {
           nav.subItems.forEach((subItem) => {
             if (isActive(subItem.path)) {
               setOpenSubmenu({
-                type: menuType as "main" | "others",
+                type: menuType as "main" | "others" | "management",
                 index,
               });
               submenuMatched = true;
@@ -275,7 +311,7 @@ const AppSidebar: React.FC = () => {
     }
   }, [openSubmenu]);
 
-  const handleSubmenuToggle = (index: number, menuType: "main" | "others") => {
+  const handleSubmenuToggle = (index: number, menuType: "main" | "others" | "management") => {
     setOpenSubmenu((prevOpenSubmenu) => {
       if (
         prevOpenSubmenu &&
@@ -354,6 +390,23 @@ const AppSidebar: React.FC = () => {
                 )}
               </h2>
               {renderMenuItems(navItems, "main")}
+            </div>
+
+            <div>
+              <h2
+                className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
+                  !isExpanded && !isHovered
+                    ? "lg:justify-center"
+                    : "justify-start"
+                }`}
+              >
+                {isExpanded || isHovered || isMobileOpen ? (
+                  "Gestion"
+                ) : (
+                  <HorizontaLDots />
+                )}
+              </h2>
+              {renderMenuItems(managementItems, "management")}
             </div>
 
             <div className="">

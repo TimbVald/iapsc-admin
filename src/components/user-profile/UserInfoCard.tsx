@@ -176,13 +176,13 @@ export default function UserInfoCard() {
                 onClick={() => closeModal()}
                 type="button"
                 >
-                  Annuler
+                  Cancel
                 </Button>
                 <Button size="sm" type="submit" disabled={isLoading}>
                   {isLoading ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
-                    "Sauvegarder"
+                    "Save"
                   )}
                 </Button>
               </div>

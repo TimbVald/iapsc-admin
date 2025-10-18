@@ -6,6 +6,7 @@ import { FC, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Pen, Loader2 } from "lucide-react";
 import DropzoneComponent from "../form/form-elements/DropZone";
+import Button from "../ui/button/Button";
 
 const UserMetaCard = () => {
   const supabase = createBrowserClient(
@@ -179,13 +180,13 @@ const UserMetaCard = () => {
 
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg p-6 w-full max-w-2xl flex flex-col">
+          <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg p-6 w-full max-w-2xl flex flex-col max-h-[90vh]">
             <h2 className="text-2xl font-bold mb-4">Modifier le profil</h2>
             <div className="overflow-y-auto flex-grow pr-2 scrollbar-thin scrollbar-thumb-gray-400 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
               <div className="relative w-full mx-auto mb-4">
                 <DropzoneComponent onFilesChange={handleDropzoneChange} />
                 {avatarPreview && (
-                  <div className="mt-4 w-32 h-32 relative">
+                  <div className="flex justify-center items-center mt-4 w-32 h-32 relative">
                     <Image
                       src={avatarPreview}
                       alt="Aperçu de l'avatar"
@@ -226,12 +227,12 @@ const UserMetaCard = () => {
                       style={{ width: `${uploadProgress}%` }}
                     ></div>
                   </div>
-                  <button
+                  <Button
                     onClick={() => uploadController?.abort()}
                     className="mt-2 text-sm text-red-500"
                   >
-                    Annuler
-                  </button>
+                    Cancel
+                  </Button>
                 </div>
               )}
               {uploadError && (
@@ -239,24 +240,22 @@ const UserMetaCard = () => {
               )}
             </div>
             <div className="flex justify-end mt-6">
-              <button
+              <Button
                 onClick={closeModal}
-                className="px-4 py-2 mr-2 bg-gray-300 rounded"
                 type="button"
               >
-                Annuler
-              </button>
-              <button
+                Cancel
+              </Button>
+              <Button
                 onClick={handleSave}
-                className="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark flex items-center"
                 disabled={isSaving || isUploading}
               >
                 {isSaving || isUploading ? (
-                  <span className="flex items-center"><Loader2 className="w-4 h-4 animate-spin mr-2" /> Sauvegarde en cours...</span>
+                  <span className="flex items-center"><Loader2 className="w-4 h-4 animate-spin mr-2" /> Save...</span>
                 ) : (
-                  "Sauvegarder"
+                  "Save"
                 )}
-              </button>
+              </Button>
             </div>
           </div>
         </div>

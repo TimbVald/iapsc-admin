@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import db from "@/lib/db";
 import { users } from "@/lib/db/schema";
+import { Loader2 } from "lucide-react";
 
 export default function SignUpForm() {
   const [showPassword, setShowPassword] = useState(false);
@@ -19,11 +20,13 @@ export default function SignUpForm() {
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const supabase = createClient();
 
   const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setIsLoading(true);
 
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -43,6 +46,7 @@ export default function SignUpForm() {
     } else {
       toast.success("Check your email for a confirmation link.");
     }
+    setIsLoading(false);
   };
 
   const handleSignInWithGoogle = async () => {
@@ -249,8 +253,9 @@ export default function SignUpForm() {
                   <button
                     type="submit"
                     className="flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-white transition rounded-lg bg-brand-500 shadow-theme-xs hover:bg-brand-600"
+                    disabled={isLoading}
                   >
-                    Sign Up
+                    {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Sign Up"}
                   </button>
                 </div>
                 {/* {error && (

@@ -8,10 +8,15 @@ import Label from "../form/Label";
 import { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 
 export default function UserInfoCard() {
   const { isOpen, openModal, closeModal } = useModal();
   const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -27,30 +32,39 @@ export default function UserInfoCard() {
 
   const handleSave = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setIsLoading(true);
     const formData = new FormData(event.currentTarget);
     const supabase = createClient();
 
-    const { data, error } = await supabase.auth.updateUser({
-      email: formData.get("email") as string,
-      phone: formData.get("phone") as string,
-      data: {
-        first_name: formData.get("first_name") as string,
-        last_name: formData.get("last_name") as string,
-        full_name: `${formData.get("first_name")} ${formData.get("last_name")}`,
-      },
-    });
+    try {
+      const { data, error } = await supabase.auth.updateUser({
+        email: formData.get("email") as string,
+        phone: formData.get("phone") as string,
+        data: {
+          first_name: formData.get("first_name") as string,
+          last_name: formData.get("last_name") as string,
+          full_name: `${formData.get("first_name")} ${formData.get(
+            "last_name"
+          )}`,
+        },
+      });
 
-    if (error) {
-      console.error("Error updating user:", error);
-    } else {
-      setUser(data.user);
-      closeModal();
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      if (data.user) {
+        setUser(data.user);
+        toast.success("Personal information updated successfully.");
+        closeModal();
+        router.refresh();
+      }
+    } catch (error: any) {
+      toast.error(`Error updating user: ${error.message}`);
+    } finally {
+      setIsLoading(false);
     }
   };
-
-  function setIsModalOpen(arg0: boolean): void {
-    throw new Error("Function not implemented.");
-  }
 
   return (
     <div className="p-5 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
@@ -84,7 +98,7 @@ export default function UserInfoCard() {
                 Phone
               </p>
               <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                {user?.phone || "No phone number"}
+                {user?.user_metadata.phone || "No phone number"}
               </p>
             </div>
           </div>
@@ -148,7 +162,7 @@ export default function UserInfoCard() {
 
                   <div className="col-span-2 lg:col-span-1">
                     <Label>Phone</Label>
-                    <Input type="text" name="phone" defaultValue={user?.phone || ''} />
+                    <Input type="text" name="phone" defaultValue={user?.user_metadata.phone || ''} />
                   </div>
 
                   <div className="col-span-2">
@@ -160,11 +174,16 @@ export default function UserInfoCard() {
             <div className="flex justify-end gap-4">
               <Button
                 onClick={() => closeModal()}
+                type="button"
                 >
                   Annuler
                 </Button>
-                <Button size="sm">
-                  Sauvegarder
+                <Button size="sm" type="submit" disabled={isLoading}>
+                  {isLoading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    "Sauvegarder"
+                  )}
                 </Button>
               </div>
           </form>

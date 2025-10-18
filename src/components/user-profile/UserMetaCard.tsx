@@ -4,7 +4,7 @@ import { User } from "@supabase/supabase-js";
 import Image from "next/image";
 import { FC, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Pen } from "lucide-react";
+import { Pen, Loader2 } from "lucide-react";
 import DropzoneComponent from "../form/form-elements/DropZone";
 
 const UserMetaCard = () => {
@@ -19,6 +19,7 @@ const UserMetaCard = () => {
     last_name: "",
   });
 
+  const [isSaving, setIsSaving] = useState(false);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -70,64 +71,68 @@ const UserMetaCard = () => {
 
   const handleSave = async () => {
     if (!user) return;
+    setIsSaving(true);
 
-    const { data: updatedUser, error: updateUserError } = await supabase.auth.updateUser({
-        data: { ...formData },
-      });
-
-    if (updateUserError) {
-      toast.error(
-        "Erreur lors de la mise à jour du profil: " + updateUserError.message
-      );
-      return;
-    }
-
-    if(updatedUser) {
-        setUser(updatedUser.user);
-    }
-
-    if (avatarFile) {
-      setIsUploading(true);
-      setUploadError(null);
-      setUploadProgress(0);
-      const controller = new AbortController();
-      setUploadController(controller);
-
-      const avatarFormData = new FormData();
-      avatarFormData.append("avatar", avatarFile);
-
-      try {
-        const response = await fetch("/api/user/avatar", {
-          method: "POST",
-          body: avatarFormData,
-          signal: controller.signal,
+    try {
+      const { data: updatedUser, error: updateUserError } = await supabase.auth.updateUser({
+          data: { ...formData },
         });
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || "Échec du téléversement de l'avatar");
-        }
-
-        const { user: updatedUserWithAvatar } = await response.json();
-        setUser(updatedUserWithAvatar);
-        toast.success("Avatar mis à jour avec succès!");
-        setAvatarFile(null);
-        setAvatarPreview(null);
-      } catch (error: any) {
-        if (error.name === "AbortError") {
-          toast.warning("Téléversement de l'avatar annulé.");
-        } else {
-          setUploadError(error.message);
-          toast.error("Erreur: " + error.message);
-        }
-      } finally {
-        setIsUploading(false);
-        setUploadController(null);
+      if (updateUserError) {
+        throw new Error(`Error updating profile: ${updateUserError.message}`);
       }
-    }
 
-    setIsModalOpen(false);
-    toast.success("Profil mis à jour avec succès!");
+      if(updatedUser) {
+          setUser(updatedUser.user);
+      }
+
+      if (avatarFile) {
+        setIsUploading(true);
+        setUploadError(null);
+        setUploadProgress(0);
+        const controller = new AbortController();
+        setUploadController(controller);
+
+        const avatarFormData = new FormData();
+        avatarFormData.append("avatar", avatarFile);
+
+        try {
+          const response = await fetch("/api/user/avatar", {
+            method: "POST",
+            body: avatarFormData,
+            signal: controller.signal,
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || "Avatar upload failed");
+          }
+
+          const { user: updatedUserWithAvatar } = await response.json();
+          setUser(updatedUserWithAvatar);
+          toast.success("Avatar updated successfully!");
+          setAvatarFile(null);
+          setAvatarPreview(null);
+        } catch (error: any) {
+          if (error.name === "AbortError") {
+            toast.warning("Avatar upload cancelled.");
+          } else {
+            setUploadError(error.message);
+            toast.error(`Error: ${error.message}`);
+          }
+        } finally {
+          setIsUploading(false);
+          setUploadController(null);
+        }
+      }
+
+      setIsModalOpen(false);
+      toast.success("Profile updated successfully!");
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const openModal = () => setIsModalOpen(true);
@@ -172,77 +177,83 @@ const UserMetaCard = () => {
 
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg p-6 w-full max-w-2xl">
+          <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg p-6 w-full max-w-2xl flex flex-col">
             <h2 className="text-2xl font-bold mb-4">Modifier le profil</h2>
+            <div className="overflow-y-auto flex-grow pr-2 scrollbar-thin scrollbar-thumb-gray-400 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
+              <div className="relative w-full mx-auto mb-4">
+                <DropzoneComponent onFilesChange={handleDropzoneChange} />
+                {avatarPreview && (
+                  <div className="mt-4 w-32 h-32 relative">
+                    <Image
+                      src={avatarPreview}
+                      alt="Aperçu de l'avatar"
+                      fill
+                      className="rounded-full object-cover"
+                    />
+                  </div>
+                )}
+              </div>
 
-            <div className="relative w-full mx-auto mb-4">
-              <DropzoneComponent onFilesChange={handleDropzoneChange} />
-              {avatarPreview && (
-                <div className="mt-4 w-32 h-32 relative">
-                  <Image
-                    src={avatarPreview}
-                    alt="Aperçu de l'avatar"
-                    layout="fill"
-                    className="rounded-full object-cover"
-                  />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <input
+                  type="text"
+                  name="first_name"
+                  placeholder="Prénom"
+                  value={formData.first_name}
+                  onChange={handleInputChange}
+                  className="w-full p-2 border rounded"
+                />
+                <input
+                  type="text"
+                  name="last_name"
+                  placeholder="Nom"
+                  value={formData.last_name}
+                  onChange={handleInputChange}
+                  className="w-full p-2 border rounded"
+                />
+              </div>
+              <h3 className="text-lg font-semibold mt-4 mb-2">Réseaux sociaux</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              </div>
+
+              {isUploading && (
+                <div className="mt-4">
+                  <div className="w-full bg-gray-200 rounded-full h-2.5">
+                    <div
+                      className="bg-primary h-2.5 rounded-full"
+                      style={{ width: `${uploadProgress}%` }}
+                    ></div>
+                  </div>
+                  <button
+                    onClick={() => uploadController?.abort()}
+                    className="mt-2 text-sm text-red-500"
+                  >
+                    Annuler
+                  </button>
                 </div>
               )}
+              {uploadError && (
+                <p className="mt-2 text-sm text-red-500">{uploadError}</p>
+              )}
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <input
-                type="text"
-                name="first_name"
-                placeholder="Prénom"
-                value={formData.first_name}
-                onChange={handleInputChange}
-                className="w-full p-2 border rounded"
-              />
-              <input
-                type="text"
-                name="last_name"
-                placeholder="Nom"
-                value={formData.last_name}
-                onChange={handleInputChange}
-                className="w-full p-2 border rounded"
-              />
-            </div>
-            <h3 className="text-lg font-semibold mt-4 mb-2">Réseaux sociaux</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            </div>
-
-            {isUploading && (
-              <div className="mt-4">
-                <div className="w-full bg-gray-200 rounded-full h-2.5">
-                  <div
-                    className="bg-primary h-2.5 rounded-full"
-                    style={{ width: `${uploadProgress}%` }}
-                  ></div>
-                </div>
-                <button
-                  onClick={() => uploadController?.abort()}
-                  className="mt-2 text-sm text-red-500"
-                >
-                  Annuler
-                </button>
-              </div>
-            )}
-            {uploadError && (
-              <p className="mt-2 text-sm text-red-500">{uploadError}</p>
-            )}
-
             <div className="flex justify-end mt-6">
               <button
                 onClick={closeModal}
                 className="px-4 py-2 mr-2 bg-gray-300 rounded"
+                type="button"
               >
                 Annuler
               </button>
               <button
                 onClick={handleSave}
-                className="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark"
+                className="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark flex items-center"
+                disabled={isSaving || isUploading}
               >
-                Sauvegarder
+                {isSaving || isUploading ? (
+                  <span className="flex items-center"><Loader2 className="w-4 h-4 animate-spin mr-2" /> Sauvegarde en cours...</span>
+                ) : (
+                  "Sauvegarder"
+                )}
               </button>
             </div>
           </div>
